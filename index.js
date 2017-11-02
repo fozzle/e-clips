@@ -35,8 +35,12 @@ const scrapeFrontpage = () => {
     });
 }
 
+const wait = (milliseconds) => {
+  return new Promise((resolve, reject) => setTimeout(resolve, milliseconds));
+}
+
 const getAmpUrls = () => {
-  axios.post(`https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet?key=${process.env.GOOGLE_API_KEY}`,
+  return axios.post(`https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet?key=${process.env.GOOGLE_API_KEY}`,
     {
       'urls': [
         'http://www.gothamist.com/2017/10/16/the_f_is_effed_again.php'
@@ -60,7 +64,7 @@ const gothamistAuthorPageURL = (name) => {
 const scrapeAuthor = (name) => {
   // Search google for cache link
   const gothamistQueryURL = gothamistAuthorPageURL(name);
-  axios.get(`https://www.google.com/search?q=${encodeURIComponent(gothamistQueryURL)}`)
+  return axios.get(`https://www.google.com/search?q=${encodeURIComponent(gothamistQueryURL)}`)
     .then((resp) => {
       const $ = cheerio.load(resp.data);
 
