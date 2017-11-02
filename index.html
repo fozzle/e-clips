@@ -13,7 +13,8 @@
     <p>
       Did you write for Gothamist and want to preserve your work? Enter your name
       (as credited on Gothamist) and hit enter. We will try our best to scrape your articles
-      from various caches, and then get you a link to them.
+      from various caches, and then get you a link to them. Caches expire so this will probably only
+      work for a day at best.
     </p>
     <p>
       Since time is of the essence, expect bugs. If it works for you, awesome! If it doesn't...well...sorry.
@@ -25,7 +26,26 @@
     <button id="submitButton">Scrape</button>
 
     <script type="text/javascript">
-      
+      $('#submitButton').click(() => {
+        const name = $('#nameInput').val();
+        $(this).attr('disabled', true);
+
+        if (!name) {
+          $(this).attr('disabled', false);
+          return alert('You need to enter a name.');
+        }
+
+        $.post('', { name: name })
+          .done(() => {
+            alert('We found your cache, we are downloading articles into the archive now.');
+          })
+          .fail(() => {
+            alert('Something went wrong. Perhaps we could not find your cache or the name doesnt match the attribution?')
+          })
+          .always(() => {
+            $(this).attr('disabled', false);
+          });
+      });
     </script>
   </body>
 </html>
