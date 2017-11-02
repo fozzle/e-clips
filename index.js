@@ -24,19 +24,8 @@ const scrapeFrontpage = () => {
         }
 
     // Follow as mobile agent
-    axios.post(`https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet?key=${process.env.GOOGLE_API_KEY}`,
-      {
-        'urls': [
-          'http://www.gothamist.com/2017/10/16/the_f_is_effed_again.php'
-        ],
-        'lookupStrategy': 'IN_INDEX_DOC'
-      }).then((response) => {
-        console.log('amp url: ', response.data.ampUrls[0].ampUrl);
-      }).catch((error) => {
-        console.error(error);
-      });
-        // Get google AMP URL
-        // Download html
+    // Get google AMP URL
+    // Download html
 
       });
 
@@ -45,6 +34,24 @@ const scrapeFrontpage = () => {
 
     });
 }
+
+const getAmpUrls = () => {
+  axios.post(`https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet?key=${process.env.GOOGLE_API_KEY}`,
+    {
+      'urls': [
+        'http://www.gothamist.com/2017/10/16/the_f_is_effed_again.php'
+      ],
+      'lookupStrategy': 'IN_INDEX_DOC'
+    }).then((response) => {
+      const cacheUrls = response.data.ampUrls.map((meta) =>
+        meta.ampUrl
+          .replace('http://', 'https://www.google.com/amp/')
+          .replace('?', '%3f'));
+      console.log('amp url: ', cacheUrls[0]);
+    }).catch((error) => {
+      console.error(error);
+    });
+};
 
 const gothamistAuthorPageURL = (name) => {
   return `gothamist.com/author/${encodeURIComponent(name)}`;
@@ -73,7 +80,7 @@ const scrapeAuthor = (name) => {
 
         console.log(articleTitle, articleURL);
       })
-    })
+    });
 }
 
 scrapeAuthor('Rebecca Fishbein');
