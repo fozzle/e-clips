@@ -35,7 +35,7 @@
           return alert('You need to enter a name.');
         }
 
-        $.post('', { name: name })
+        $.post('https://us-central1-gothamist-archive.cloudfunctions.net/scrapeAuthor', { name: name })
           .done(() => {
             alert('We found your cache, we are downloading articles into the archive now.');
           })
