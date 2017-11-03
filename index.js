@@ -65,9 +65,10 @@ const gothamistAuthorPageURL = (name) => {
 
 const recurseAmpScrape = (urls) => {
   if (!urls.length) return Promise.resolve();
-  const batch = urls.pop();
-  console.log('boutta batch', batch);
-  return getAmpUrls(urls)
+  const batch = urls.shift();
+
+  // Googles rate limits are really strict
+  return getAmpUrls(batch)
     .then(() => wait(15000))
     .then(() => recurseAmpScrape(urls));
 }
