@@ -70,7 +70,9 @@ const recurseAmpScrape = (urls) => {
   // Googles rate limits are really strict
   return getAmpUrls(batch)
     .then((cacheUrls) => {
-      const scrapePromises = cacheUrls.map((url) => storeArticle(url));
+      const scrapePromises = cacheUrls.map((url) => storeArticle(url).catch(err => {
+        if (err.message !== 'nosrc') throw err;
+      }));
       return Promise.all(scrapePromises);
     })
     .then(() => wait(15000))
@@ -113,6 +115,7 @@ const scrapeAuthor = (name) => {
 }
 
 const storeArticle = (url) => {
+  if (!url) return Promise.reject(new Error('nosrc'));
   console.log('fetching', url);
 
   return axios({
@@ -123,6 +126,8 @@ const storeArticle = (url) => {
   .then((response) => {
     const $ = cheerio.load(response.data);
     const iframeSrc = $('iframe').attr('src');
+
+    if (!iframeSrc) throw new Error('nosrc');
     return axios({
       method:'get',
       url: iframeSrc,
