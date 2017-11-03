@@ -60,17 +60,38 @@ const scrapeAuthor = (name) => {
   // Search google for cache link
 
   //do something here
-  const queryURLs = authorPageURLs(name);
+  const queryURLs = [
+  'http://gothamist.com/author/Colin%20Dodds',
+  'http://gothamist.com/author/David%20Brand',
+  'http://gothamist.com/author/Eliza%20Relman',
+  'http://gothamist.com/author/Erica%20Siudzinski',
+  'http://gothamist.com/author/Gaby%20Del%20Valle',
+  'http://gothamist.com/author/Garth%20Johnston',
+  'http://gothamist.com/author/Gothamist',
+  'http://gothamist.com/author/Jake%20Offenhartz',
+  'http://gothamist.com/author/Jamie%20Feldmar',
+  'http://gothamist.com/author/Jay%20Barmann',
+  'http://gothamist.com/author/Jaya%20Saxena',
+  'http://gothamist.com/author/Jen%20Chung',
+  'http://gothamist.com/author/Joe%20Schumacher',
+  'http://gothamist.com/author/Joseph%20Alexiou',
+  'http://gothamist.com/author/Marc%20Yearsley',
+  'http://gothamist.com/author/Max%20Kyburz',
+  'http://gothamist.com/author/Nathan%20Tempey',
+  'http://gothamist.com/author/Nell%20Casey',
+  'http://gothamist.com/author/Nick%20Pinto',
+  'http://gothamist.com/author/Sarah%20Aziza',
+  'http://gothamist.com/author/Scott%20Lynch',
+  'http://gothamist.com/author/Sean%20Ludwig',
+  'http://gothamist.com/author/Sophie%20Kleeman',
+  'http://gothamist.com/author/Steven%20Wishnia',
+  'http://gothamist.com/author/Victoria%20Law',];
   const promises = queryURLs.map((queryURL) => {
-    return axios.get(`https://www.google.com/search?q=${encodeURIComponent(queryURL)}`)
-      .then((resp) => {
-        const $ = cheerio.load(resp.data);
-        console.log('getting cache');
-
-        const cacheUrl = $('a._Zkb').attr('href');
-        if (!cacheUrl) throw 'nocacheurl';
-        console.log('found at', queryURL);
-        return axios.get(`http://google.com${cacheUrl}`);
+    let currentTimestamp = '';
+    return axios.get(`http://archive.org/wayback/available?url=${encodeURIComponent(queryURL)}`)
+      .then((response) => {
+        currentTimestamp = response.data.archived_snapshots.closest.timestamp;
+        return axios.get(response.data.archived_snapshots.closest.url);
       })
       .then((resp) => {
         const $ = cheerio.load(resp.data);
@@ -82,7 +103,7 @@ const scrapeAuthor = (name) => {
           const link = $(linkEl);
 
           const articleTitle = link.text();
-          const articleURL = link.attr('href');
+          const articleURL = link.attr('href').replace(`http://web.archive.org/web/${currentTimestamp}/`, '');
           articleUrls.push(articleURL);
         });
         return articleUrls;
@@ -108,7 +129,7 @@ const scrapeAuthor = (name) => {
         throw err;
       });
   });
-  return Promise.all(promises);
+  return promises;
 }
 
 const storeArticle = (url) => {
@@ -167,4 +188,7 @@ const storeArticle = (url) => {
   });;
 }
 
-scrapeAuthor('Emma Specter').then(() => process.exit(0));
+scrapeAuthor('').reduce(function(cur, next) {
+    console.log('hello');
+    return cur.then(next);
+}, Promise.resolve([]));
