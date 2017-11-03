@@ -7,42 +7,12 @@ const CACHE_LINK = 'https://webcache.googleusercontent.com/search?q=cache:kK5T6Z
 
 const bucket = storage.bucket('amp-archive');
 
-const scrapeFrontpage = () => {
-  axios.get(CACHE_LINK)
-    .then((resp) => {
-      const $ = cheerio.load(resp.data);
-
-      // Find article links
-      const articleLinks = $('.asset-name.entry-title a');
-
-      // console.log(articleLinks);
-      // Follow as mobile agent
-      articleLinks.each((i, link) => {
-        let articleURL, articleTitle;
-        try {
-          articleURL = $(link).attr('href');
-          articleTitle = $(link).text();
-        } catch (e) {
-          console.log(e);
-        }
-
-    // Follow as mobile agent
-    // Get google AMP URL
-    // Download html
-
-      });
-
-    })
-    .catch((err) => {
-
-    });
-}
-
 const wait = (milliseconds) => {
   return new Promise((resolve, reject) => setTimeout(resolve, milliseconds));
 }
 
 const getAmpUrls = (originalUrls) => {
+  console.log('getting amped');
   return axios.post(`https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet?key=${process.env.GOOGLE_API_KEY}`,
     {
       'urls': originalUrls,
@@ -85,9 +55,10 @@ const scrapeAuthor = (name) => {
   return axios.get(`https://www.google.com/search?q=${encodeURIComponent(gothamistQueryURL)}`)
     .then((resp) => {
       const $ = cheerio.load(resp.data);
+      console.log('getting cache');
 
       const cacheUrl = $('a._Zkb').attr('href');
-
+      if (!cacheUrl) throw 'nocacheurl';
       return axios.get(`http://google.com${cacheUrl}`);
     })
     .then((resp) => {
@@ -111,12 +82,24 @@ const scrapeAuthor = (name) => {
         splitUrls.push(articleUrls.splice(0, 50));
       }
       return recurseAmpScrape(splitUrls);
+    })
+    .catch(err => {
+      console.log('nocacheurl', name);
+      if (err === 'nocacheurl') return;
+      throw err;
+    })
+    .catch(err => {
+      // If its an axios error, not all is lost
+      if (err.response) {
+        console.error(err.response);
+        return;
+      }
+      throw err;
     });
 }
 
 const storeArticle = (url) => {
   if (!url) return Promise.reject(new Error('nosrc'));
-  console.log('fetching', url);
 
   return axios({
     method:'get',
@@ -151,7 +134,8 @@ const storeArticle = (url) => {
 
     const authorName = authorPieces.join(' ');
     const deslashedTitle = title.replace('/', '-');
-    const filename = `${authorName}/${deslashedTitle}.html`
+    const filename = `${authorName}/${deslashedTitle}.html`;
+    console.log('aboutta save');
     return bucket.file(filename).save(
       response.data,
       {
@@ -159,5 +143,15 @@ const storeArticle = (url) => {
           contentType: 'text/html',
         }
     });
-  });
+  })
+  .catch(err => {
+    // If its an axios error, not all is lost
+    if (err.response) {
+      console.log('axios error', err.response.status);
+      return;
+    }
+    throw err;
+  });;
 }
+
+// scrapeAuthor('Dan Dickinson').then(() => process.exit(0));
