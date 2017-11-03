@@ -59,8 +59,15 @@ const getAmpUrls = (originalUrls) => {
     });
 };
 
-const gothamistAuthorPageURL = (name) => {
-  return `gothamist.com/author/${encodeURIComponent(name)}`;
+const authorPageURLs = (name) => {
+  return [
+    `gothamist.com/author/${encodeURIComponent(name)}`,
+    `laist.com/author/${encodeURIComponent(name)}`,
+    `dcist.com/author/${encodeURIComponent(name)}`,
+    `chicagoist.com/author/${encodeURIComponent(name)}`,
+    `sfist.com/author/${encodeURIComponent(name)}`,
+    `shanghaiist.com/author/${encodeURIComponent(name)}`,
+  ];
 }
 
 const recurseAmpScrape = (urls) => {
@@ -81,7 +88,12 @@ const recurseAmpScrape = (urls) => {
 
 const scrapeAuthor = (name) => {
   // Search google for cache link
-  const gothamistQueryURL = gothamistAuthorPageURL(name);
+
+  //do something here 
+  const queryURLs = authorPageURLs(name);
+  queryURLs.forEach((queryURL) => {
+
+  });
   return axios.get(`https://www.google.com/search?q=${encodeURIComponent(gothamistQueryURL)}`)
     .then((resp) => {
       const $ = cheerio.load(resp.data);
@@ -161,3 +173,5 @@ const storeArticle = (url) => {
     });
   });
 }
+
+scrapeAuthor('Annie Lloyd');
