@@ -1,6 +1,9 @@
 require('dotenv').load();
 const axios = require('axios');
 const cheerio = require('cheerio');
+const storage = require('@google-cloud/storage')();
+
+const archiveBucket = storage.bucket('amp-archive');
 
 const CACHE_LINK = 'https://webcache.googleusercontent.com/search?q=cache:kK5T6Z39UOIJ:gothamist.com/+&cd=20&hl=en&ct=clnk&gl=us';
 
@@ -39,6 +42,14 @@ const wait = (milliseconds) => {
   return new Promise((resolve, reject) => setTimeout(resolve, milliseconds));
 }
 
+const archiveAmpArticle = (ampUrl) => {
+  console.log('archiving', ampUrl);
+  return axios.get(ampUrl)
+    .then((resp) => {
+      console.log('got resp', resp.data);
+    });
+}
+
 const getAmpUrls = (originalUrls) => {
   return axios.post(`https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet?key=${process.env.GOOGLE_API_KEY}`,
     {
@@ -49,7 +60,8 @@ const getAmpUrls = (originalUrls) => {
         meta.ampUrl
           .replace('http://', 'https://www.google.com/amp/')
           .replace('?', '%3f'));
-      console.log('amp url: ', cacheUrls);
+
+      return cacheUrls;
     }).catch((error) => {
       console.error('error', error.response.data);
     });
@@ -65,6 +77,10 @@ const recurseAmpScrape = (urls) => {
 
   // Googles rate limits are really strict
   return getAmpUrls(batch)
+    .then((cacheUrls) => {
+      const scrapePromises = cacheUrls.map((url) => archiveAmpArticle(url));
+      return Promise.all(scrapePromises);
+    })
     .then(() => wait(15000))
     .then(() => recurseAmpScrape(urls));
 }
