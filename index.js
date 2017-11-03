@@ -51,12 +51,21 @@ const getAmpUrls = (originalUrls) => {
           .replace('?', '%3f'));
       console.log('amp url: ', cacheUrls);
     }).catch((error) => {
-      console.error('error');
-    }));
+      console.error('error', error.response.data);
+    });
 };
 
 const gothamistAuthorPageURL = (name) => {
   return `gothamist.com/author/${encodeURIComponent(name)}`;
+}
+
+const recurseAmpScrape = (urls) => {
+  if (!urls.length) return Promise.resolve();
+  const batch = urls.pop();
+  console.log('boutta batch', batch);
+  return getAmpUrls(urls)
+    .then(() => wait(15000))
+    .then(() => recurseAmpScrape(urls));
 }
 
 const scrapeAuthor = (name) => {
@@ -90,7 +99,7 @@ const scrapeAuthor = (name) => {
       while(articleUrls.length > 0) {
         splitUrls.push(articleUrls.splice(0, 50));
       }
-      splitUrls.forEach((urls) => wait(15000).then(() => getAmpUrls(urls)));
+      return recurseAmpScrape(splitUrls);
     });
 }
 
