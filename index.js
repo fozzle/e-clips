@@ -113,6 +113,7 @@ const scrapeAuthor = (name) => {
 }
 
 const storeArticle = (url) => {
+  if (!url) return Promise.reject(new Error('nosrc'));
   console.log('fetching', url);
 
   return axios({
@@ -123,6 +124,8 @@ const storeArticle = (url) => {
   .then((response) => {
     const $ = cheerio.load(response.data);
     const iframeSrc = $('iframe').attr('src');
+
+    if (!iframeSrc) throw new Error('nosrc');
     return axios({
       method:'get',
       url: iframeSrc,
