@@ -38,26 +38,35 @@
     </div>
 
     <script type="text/javascript">
-      $('#submitButton').click(() => {
-        const name = $('#nameInput').val();
-        $(this).prop('disabled', true);
+      const submitButton = document.getElementById('submitButton');
+      submitButton.onclick = () => {
+        const name = document.getElementById('nameInput').value;
+        submitButton.disabled = true;
 
         if (!name) {
-          $(this).prop('disabled', false);
+          submitButton.disabled = false;
           return alert('You need to enter a name.');
         }
 
-        $.post('https://us-central1-gothamist-archive.cloudfunctions.net/scrapeAuthor', { name: name })
-          .done(() => {
+        const fetchOptions = {
+          method: 'POST',
+          body: JSON.stringify({
+            name: name
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        };
+        fetch('https://us-central1-gothamist-archive.cloudfunctions.net/scrapeAuthor', fetchOptions)
+          .then(() => {
             alert('We found your cache, we are downloading articles into the archive now.');
+            submitButton.disabled = false;
           })
-          .fail(() => {
-            alert('Something went wrong. Perhaps we could not find your cache or the name doesnt match the attribution? DM us.')
-          })
-          .always(() => {
-            $(this).prop('disabled', false);
+          .catch(() => {
+            alert('Something went wrong. Perhaps we could not find your cache or the name doesnt match the attribution? DM us.');
+            submitButton.disabled = false;
           });
-      });
+      };
     </script>
 
   <script type="text/javascript">
