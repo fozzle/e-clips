@@ -7,23 +7,35 @@
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://rawgit.com/rufuspollock/s3-bucket-listing/gh-pages/list.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
   </head>
   <body>
-    <h1>Gothamist Author Archive Rescue Tool</h1>
-    <p>
-      Did you write for Gothamist and want to preserve your work? Enter your name
-      (as credited on Gothamist) and hit enter. We will try our best to scrape your articles
-      from various caches, and then get you a link to them. Caches expire so this will probably only
-      work for a day at best.
-    </p>
-    <p>
-      Since time is of the essence, expect bugs. If it works for you, awesome! If it doesn't...well...sorry.
-    </p>
-    <label for="nameInput">
-      Your Name (As Credited on Gothamist)
-      <input type="text" placeholder="Your Name" id="nameInput" />
-    </label>
-    <button id="submitButton">Scrape</button>
+    <div class="m-2">
+      <h1>Gothamist Archive Retrieval Tool</h1>
+      <p>
+        If you wrote for Gothamist and would like to retrieve your clips,
+        we've written a tool that will retrieve them from the Google AMP caches.
+        Enter your name below (as credited on the Gothamist author pages) and our
+        server will start retrieving them from the caches and the post a link below.
+        There is a rate limit on Google's AMP API so please be patient for your folder to show up.
+        Caches expire so this may only work for a day at best.
+      </p>
+      <p>
+        Hopefully this won't be too buggy, good luck and thank you for your reporting!
+      </p>
+      <p>
+        Made by <a href='https://twitter.com/xn9q8h'>@xn9q8h</a> and <a href='https://twitter.com/turtlekiosk'>@turtlekiosk</a>
+      </p>
+      <label for="nameInput">
+        Your Name (As Credited on Gothamist)
+        <br/>
+        <input type="text" placeholder="Your Name" id="nameInput" />
+      </label>
+      <button id="submitButton">Scrape</button>
+
+      <div id="listing"></div>
+    </div>
 
     <script type="text/javascript">
       $('#submitButton').click(() => {
@@ -47,5 +59,15 @@
           });
       });
     </script>
+
+  <script type="text/javascript">
+    var S3BL_IGNORE_PATH = true;
+    var BUCKET_NAME = 'amp-archive';
+    var BUCKET_URL = 'https://storage.googleapis.com/amp-archive';
+    var S3B_SORT = 'A2Z';
+    // var EXCLUDE_FILE = 'index.html';
+    // var AUTO_TITLE = true;
+    // var S3_REGION = 's3'; // for us-east-1
+  </script>
   </body>
 </html>
