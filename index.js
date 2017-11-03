@@ -70,7 +70,9 @@ const recurseAmpScrape = (urls) => {
   // Googles rate limits are really strict
   return getAmpUrls(batch)
     .then((cacheUrls) => {
-      const scrapePromises = cacheUrls.map((url) => storeArticle(url));
+      const scrapePromises = cacheUrls.map((url) => storeArticle(url).catch(err => {
+        if (err.message !== 'nosrc') throw err;
+      }));
       return Promise.all(scrapePromises);
     })
     .then(() => wait(15000))
