@@ -40,10 +40,10 @@
     <script type="text/javascript">
       $('#submitButton').click(() => {
         const name = $('#nameInput').val();
-        $(this).attr('disabled', true);
+        $(this).prop('disabled', true);
 
         if (!name) {
-          $(this).attr('disabled', false);
+          $(this).prop('disabled', false);
           return alert('You need to enter a name.');
         }
 
@@ -52,10 +52,10 @@
             alert('We found your cache, we are downloading articles into the archive now.');
           })
           .fail(() => {
-            alert('Something went wrong. Perhaps we could not find your cache or the name doesnt match the attribution?')
+            alert('Something went wrong. Perhaps we could not find your cache or the name doesnt match the attribution? DM us.')
           })
           .always(() => {
-            $(this).attr('disabled', false);
+            $(this).prop('disabled', false);
           });
       });
     </script>
