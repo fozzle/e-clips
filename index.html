@@ -64,11 +64,11 @@
         };
         fetch('https://us-central1-gothamist-archive.cloudfunctions.net/scrapeAuthor', fetchOptions)
           .then(() => {
-            alert('We found your cache, we are downloading articles into the archive now.');
+            alert('We are working on downloading your archive (if found) now.');
             submitButton.disabled = false;
           })
           .catch(() => {
-            alert('Something went wrong. Perhaps we could not find your cache or the name doesnt match the attribution? DM us.');
+            alert('Something went wrong. DM us.');
             submitButton.disabled = false;
           });
       };
