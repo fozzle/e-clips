@@ -39,22 +39,20 @@ const wait = (milliseconds) => {
   return new Promise((resolve, reject) => setTimeout(resolve, milliseconds));
 }
 
-const getAmpUrls = () => {
+const getAmpUrls = (originalUrls) => {
   return axios.post(`https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet?key=${process.env.GOOGLE_API_KEY}`,
     {
-      'urls': [
-        'http://www.gothamist.com/2017/10/16/the_f_is_effed_again.php'
-      ],
+      'urls': originalUrls,
       'lookupStrategy': 'IN_INDEX_DOC'
     }).then((response) => {
       const cacheUrls = response.data.ampUrls.map((meta) =>
         meta.ampUrl
           .replace('http://', 'https://www.google.com/amp/')
           .replace('?', '%3f'));
-      console.log('amp url: ', cacheUrls[0]);
+      console.log('amp url: ', cacheUrls);
     }).catch((error) => {
-      console.error(error);
-    });
+      console.error('error');
+    }));
 };
 
 const gothamistAuthorPageURL = (name) => {
@@ -76,14 +74,23 @@ const scrapeAuthor = (name) => {
       const $ = cheerio.load(resp.data);
 
       const articleLinks = $('.main-item-summary-content a');
+      const articleUrls = [];
+
       articleLinks.each((i, linkEl) => {
         const link = $(linkEl);
 
         const articleTitle = link.text();
         const articleURL = link.attr('href');
-
-        console.log(articleTitle, articleURL);
-      })
+        articleUrls.push(articleURL);
+      });
+      return articleUrls;
+    })
+    .then((articleUrls) => {
+      const splitUrls = [];
+      while(articleUrls.length > 0) {
+        splitUrls.push(articleUrls.splice(0, 50));
+      }
+      splitUrls.forEach((urls) => wait(15000).then(() => getAmpUrls(urls)));
     });
 }
 
