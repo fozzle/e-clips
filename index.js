@@ -43,14 +43,6 @@ const wait = (milliseconds) => {
   return new Promise((resolve, reject) => setTimeout(resolve, milliseconds));
 }
 
-const archiveAmpArticle = (ampUrl) => {
-  console.log('archiving', ampUrl);
-  return axios.get(ampUrl)
-    .then((resp) => {
-      console.log('got resp', resp.data);
-    });
-}
-
 const getAmpUrls = (originalUrls) => {
   return axios.post(`https://acceleratedmobilepageurl.googleapis.com/v1/ampUrls:batchGet?key=${process.env.GOOGLE_API_KEY}`,
     {
@@ -79,7 +71,7 @@ const recurseAmpScrape = (urls) => {
   // Googles rate limits are really strict
   return getAmpUrls(batch)
     .then((cacheUrls) => {
-      const scrapePromises = cacheUrls.map((url) => archiveAmpArticle(url));
+      const scrapePromises = cacheUrls.map((url) => storeArticle(url));
       return Promise.all(scrapePromises);
     })
     .then(() => wait(15000))
@@ -121,14 +113,41 @@ const scrapeAuthor = (name) => {
     });
 }
 
-const storeArticle = (url, authorName) => {
-  axios({
+const storeArticle = (url) => {
+  console.log('fetching', url);
+
+  return axios({
     method:'get',
     url: url,
     headers: {'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_2_1 like Mac OS X) AppleWebKit/602.4.6 (KHTML, like Gecko) Version/10.0 Mobile/14D27 Safari/602.1'}
-  }).then((response) => {
+  })
+  .then((response) => {
     const $ = cheerio.load(response.data);
-    console.log('response: ', $('title').text())
+    const iframeSrc = $('iframe').attr('src');
+    return axios({
+      method:'get',
+      url: iframeSrc,
+      headers: {'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_2_1 like Mac OS X) AppleWebKit/602.4.6 (KHTML, like Gecko) Version/10.0 Mobile/14D27 Safari/602.1'}
+    });
+  })
+  .then((response) => {
+    const $ = cheerio.load(response.data);
+    const title = $('h1').text();
+    const authorSubtitlePieces = $('h1').next('p').text().split(' ');
+
+    // Do a little dance to get the author
+    let i;
+    const authorPieces = [];
+    for (i = 0; i < authorSubtitlePieces.length; i++) {
+      const piece = authorSubtitlePieces[i];
+      if (piece === 'by') continue;
+      if (piece === 'in') break;
+      authorPieces.push(piece);
+    }
+
+    const authorName = authorPieces.join(' ');
+
+    console.log('Article', title, authorName);
   });
   /*const filename = `${authorName}/`
   storage
@@ -142,5 +161,5 @@ const storeArticle = (url, authorName) => {
     });*/
 }
 
-//scrapeAuthor('Rebecca Fishbein');
-storeArticle('https://www.google.com/amp/amp.gothamist.com/amp/articles/create%3farticle_id=59ef493a24838400011aef75', 'Rebecca Fishbein');
+scrapeAuthor('Rebecca Fishbein');
+// storeArticle('https://www.google.com/amp/amp.gothamist.com/amp/articles/create%3farticle_id=59ef493a24838400011aef75', 'Rebecca Fishbein');
