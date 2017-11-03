@@ -61,53 +61,54 @@ const scrapeAuthor = (name) => {
 
   //do something here
   const queryURLs = authorPageURLs(name);
-  queryURLs.forEach((queryURL) => {
+  const promises = queryURLs.map((queryURL) => {
+    return axios.get(`https://www.google.com/search?q=${encodeURIComponent(queryURL)}`)
+      .then((resp) => {
+        const $ = cheerio.load(resp.data);
+        console.log('getting cache');
 
-  });
-  return axios.get(`https://www.google.com/search?q=${encodeURIComponent(gothamistQueryURL)}`)
-    .then((resp) => {
-      const $ = cheerio.load(resp.data);
-      console.log('getting cache');
+        const cacheUrl = $('a._Zkb').attr('href');
+        if (!cacheUrl) throw 'nocacheurl';
+        console.log('found at', queryURL);
+        return axios.get(`http://google.com${cacheUrl}`);
+      })
+      .then((resp) => {
+        const $ = cheerio.load(resp.data);
 
-      const cacheUrl = $('a._Zkb').attr('href');
-      if (!cacheUrl) throw 'nocacheurl';
-      return axios.get(`http://google.com${cacheUrl}`);
-    })
-    .then((resp) => {
-      const $ = cheerio.load(resp.data);
+        const articleLinks = $('.main-item-summary-content a');
+        const articleUrls = [];
 
-      const articleLinks = $('.main-item-summary-content a');
-      const articleUrls = [];
+        articleLinks.each((i, linkEl) => {
+          const link = $(linkEl);
 
-      articleLinks.each((i, linkEl) => {
-        const link = $(linkEl);
-
-        const articleTitle = link.text();
-        const articleURL = link.attr('href');
-        articleUrls.push(articleURL);
+          const articleTitle = link.text();
+          const articleURL = link.attr('href');
+          articleUrls.push(articleURL);
+        });
+        return articleUrls;
+      })
+      .then((articleUrls) => {
+        const splitUrls = [];
+        while(articleUrls.length > 0) {
+          splitUrls.push(articleUrls.splice(0, 50));
+        }
+        return recurseAmpScrape(splitUrls);
+      })
+      .catch(err => {
+        console.log('nocacheurl', name);
+        if (err === 'nocacheurl') return;
+        throw err;
+      })
+      .catch(err => {
+        // If its an axios error, not all is lost
+        if (err.response) {
+          console.error(err.response);
+          return;
+        }
+        throw err;
       });
-      return articleUrls;
-    })
-    .then((articleUrls) => {
-      const splitUrls = [];
-      while(articleUrls.length > 0) {
-        splitUrls.push(articleUrls.splice(0, 50));
-      }
-      return recurseAmpScrape(splitUrls);
-    })
-    .catch(err => {
-      console.log('nocacheurl', name);
-      if (err === 'nocacheurl') return;
-      throw err;
-    })
-    .catch(err => {
-      // If its an axios error, not all is lost
-      if (err.response) {
-        console.error(err.response);
-        return;
-      }
-      throw err;
-    });
+  });
+  return Promise.all(promises);
 }
 
 const storeArticle = (url) => {
@@ -166,4 +167,4 @@ const storeArticle = (url) => {
   });;
 }
 
-// scrapeAuthor('Dan Dickinson').then(() => process.exit(0));
+scrapeAuthor('Emma Specter').then(() => process.exit(0));
