@@ -5,12 +5,7 @@ const storage = require('@google-cloud/storage')();
 
 const CACHE_LINK = 'https://webcache.googleusercontent.com/search?q=cache:kK5T6Z39UOIJ:gothamist.com/+&cd=20&hl=en&ct=clnk&gl=us';
 
-<<<<<<< HEAD
 const bucket = storage.bucket('amp-archive');
-=======
-const storage = new Storage();
-const bucketName = process.env.BUCKET_NAME;
->>>>>>> bd398d89e7e47e63dec09b0f70227ccb764449b9
 
 const scrapeFrontpage = () => {
   axios.get(CACHE_LINK)
@@ -150,20 +145,14 @@ const storeArticle = (url) => {
     }
 
     const authorName = authorPieces.join(' ');
-
-    console.log('Article', title, authorName);
-
-    const filename = `${authorName}/${title}.html`
-    const writeStream = bucket.file(filename).save(
+    const deslashedTitle = title.replace('/', '-');
+    const filename = `${authorName}/${deslashedTitle}.html`
+    return bucket.file(filename).save(
       response.data,
       {
         metadata: {
           contentType: 'text/html',
         }
-      },
-      (error) => console.error(error));
+    });
   });
 }
-
-scrapeAuthor('Rebecca Fishbein');
-// storeArticle('https://www.google.com/amp/amp.gothamist.com/amp/articles/create%3farticle_id=59ef493a24838400011aef75', 'Rebecca Fishbein');
