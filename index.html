@@ -35,12 +35,10 @@
       <p>
         Made by <a href='https://twitter.com/xn9q8h'>@xn9q8h</a> and <a href='https://twitter.com/turtlekiosk'>@turtlekiosk</a>
       </p>
-      <label for="nameInput">
-        Your Name (As Credited on Gothamist)
-        <br/>
-        <input type="text" placeholder="Your Name" id="nameInput" />
-      </label>
-      <button class="btn btn-primary" id="submitButton">Scrape</button>
+
+      <p class="text-bold">
+        Since the official archives are back up, we've shut down the scrapper. Thank you for using our service!
+      </p>
 
       <div id="listing"></div>
 
@@ -60,38 +58,6 @@
         <p>Try looking at <a href="http://web.archive.org/web/*/http://gothamist.com/">Wayback Machine</a>, checking <a href="https://docs.google.com/spreadsheets/d/1-EjULY_Ny5I-bt69lZQHl4bVowgahc5zAWtuwCMZr9I/edit#gid=926640332">this spreadsheet</a>, or see what <a href="https://twitter.com/xor">this person is up to</a>. Again, good luck!</p>
       </div>
     </div>
-
-    <script type="text/javascript">
-      const submitButton = document.getElementById('submitButton');
-      submitButton.onclick = () => {
-        const name = document.getElementById('nameInput').value;
-        submitButton.disabled = true;
-
-        if (!name) {
-          submitButton.disabled = false;
-          return alert('You need to enter a name.');
-        }
-
-        const fetchOptions = {
-          method: 'POST',
-          body: JSON.stringify({
-            name: name
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        };
-        fetch('https://us-central1-gothamist-archive.cloudfunctions.net/scrapeAuthor', fetchOptions)
-          .then(() => {
-            alert('We are working on downloading your archive (if found) now.');
-            submitButton.disabled = false;
-          })
-          .catch(() => {
-            alert('Something went wrong. DM us.');
-            submitButton.disabled = false;
-          });
-      };
-    </script>
 
   <script type="text/javascript">
     var S3BL_IGNORE_PATH = true;
